@@ -1,6 +1,7 @@
 <?php
 
 include("db.php");
+include("mail/mail.php");
 date_default_timezone_set('Asia/Kolkata');
 
 if (isset($_POST['tabledata'])) {
@@ -39,10 +40,9 @@ if (isset($_POST['Add'])) {
     $uniqueKey = strtoupper(substr(sha1(microtime()), rand(0, 5), 9));
     $uniqueKey  = implode("-", str_split($uniqueKey, 3));
 
-
     try {
 
-        $data = mysqli_query($connection, "SELECT * FROM `student` WHERE `workshopid` = '$workshopid' AND `email` = '$email'");
+        $data = mysqli_query($connection, "SELECT * FROM `student` WHERE `workshopid` = '$workshopid' AND `email` = '$email' AND status != 0");
         if (mysqli_num_rows($data) == 0) {
 
             $res = mysqli_query(
@@ -51,6 +51,26 @@ if (isset($_POST['Add'])) {
                             VALUES('$workshopid','$name','$email','$mobile','$collegename','$class','1','$date','$uniqueKey')"
             );
             if ($res > 0) {
+
+                $body =  "Dear " . $name . "  ,  <br/>            
+                        Your registration is successfully completed for workshop.<br/>                        
+                        Verification code : " . $uniqueKey . "<br/><br/>
+
+                        You can able to download a certificate once it approve from following links. You will get email notification for same.<br/>
+                        Download from : https://certificates.svlautomations.in/download.php <br/><br/>
+                        OR<br/>
+                        Click on : https://certificates.svlautomations.in/certificate.php?" . $uniqueKey . "<br/><br/>
+
+                        We thank you for connecting with us.<br/><br/>                                            
+                        
+                        Regards,<br/>
+                        " . $project . "           
+                        ";
+
+                $subject = "SVL Automations : Workshop Registration ";                
+
+                $mailstatus = mailsend($email, $body, $subject, $project);
+                $msg->mailstatus = $mailstatus;
                 $msg->value = 1;
                 $msg->data = "Registration completed successfully";
                 $msg->type = "alert alert-success alert-dismissible ";
@@ -82,9 +102,11 @@ if (isset($_POST['Add'])) {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title><?= $project ?> : Registration </title>
-    <link rel="icon" href="dist/img/small.png" type="image/x-icon">
+    <link rel="icon" href="dist/img/small.png" type="image/x-icon">    
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="Thing in Everything" name="description">
+    <meta content="IOT,Web Developement, Trainings" name="keywords">
     <!-- Bootstrap 3.3.7 -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -231,9 +253,7 @@ if (isset($_POST['Add'])) {
     <!-- FastClick -->
     <script src="bower_components/fastclick/lib/fastclick.js"></script>
     <!-- AdminLTE App -->
-    <script src="dist/js/adminlte.min.js"></script>
-    <!-- AdminLTE for demo purposes -->
-    <script src="dist/js/demo.js"></script>
+    <script src="dist/js/adminlte.min.js"></script>    
     <!-- Select2 -->
     <script src="bower_components/select2/dist/js/select2.full.min.js"></script>
     <!-- DataTables -->
@@ -299,7 +319,7 @@ if (isset($_POST['Add'])) {
                     processData: false, // tell jQuery not to process the data
                     contentType: false, // tell jQuery not to set contentType
                     success: function(response) {
-                        console.log(response);
+                        // console.log(response);
                         var returnedData = JSON.parse(response);
                         // console.log(returnedData);
                         $('#add').prop('disabled', false);

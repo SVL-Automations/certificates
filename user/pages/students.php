@@ -11,59 +11,64 @@ if (isset($_POST['tabledata'])) {
 
     $result = mysqli_query(
         $connection,
-        "SELECT c.name AS collegename, w.*  FROM 
-                            `workshop` AS w INNER JOIN `college` AS c 
-                            ON w.collegeid = c.id 
-                            ORDER BY w.`start_date` DESC"
+        "SELECT s.*, w.name as workshopname, c.name as collegename FROM
+        student AS s INNER JOIN workshop AS w ON s.workshopid = w.id
+        INNER JOIN college AS c ON w.collegeid = c.id 
+        ORDER BY s.id DESC"
     );
-    $data->workshoplist = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $data->studentlist = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-    $result = mysqli_query($connection, "SELECT * FROM `college` ORDER BY `name`");
-    $data->collegelist = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $result = mysqli_query($connection, "SELECT w.*, c.name as collegename 
+                                        FROM `workshop` as w INNER JOIN college AS c 
+                                        ON w.collegeid = c.id");
+    $data->workshoplist = mysqli_fetch_all($result, MYSQLI_ASSOC);
     echo json_encode($data);
     exit();
 }
 
 
-//Add workshop
+//Add student
 if (isset($_POST['Add'])) {
 
     $msg = new \stdClass();
 
-    $collegeid = mysqli_real_escape_string($connection, $_POST['collegeid']);
+    $workshopid = mysqli_real_escape_string($connection, $_POST['workshopid']);
     $name = mysqli_real_escape_string($connection, $_POST['name']);
-    $days = mysqli_real_escape_string($connection, $_POST['days']);
-    $startdate = mysqli_real_escape_string($connection, $_POST['startdate']);
-    $enddate = mysqli_real_escape_string($connection, $_POST['enddate']);
-    $type = mysqli_real_escape_string($connection, $_POST['type']);
-
-    //Save photo chatimages folder
-    $img = $_FILES['photo']['name'];
-    $tmp = $_FILES['photo']['tmp_name'];
-    $size = $_FILES['photo']['size'];
-    // get uploaded file's extension
-    $ext = strtolower(pathinfo($img, PATHINFO_EXTENSION));
-    $filename = $collegeid . '_' . date("d-m-Y H-i-s") . '.' . $ext;
+    $email = mysqli_real_escape_string($connection, $_POST['email']);
+    $mobile = mysqli_real_escape_string($connection, $_POST['mobile']);
+    $collegename = mysqli_real_escape_string($connection, $_POST['collegename']);
+    $class = mysqli_real_escape_string($connection, $_POST['class']);
+    $date = date("Y-m-d");
+    $uniqueKey = strtoupper(substr(sha1(microtime()), rand(0, 5), 9));
+    $uniqueKey  = implode("-", str_split($uniqueKey, 3));
 
     try {
-        $res = mysqli_query(
-            $connection,
-            "INSERT INTO `workshop`(`collegeid`, `name`, `days`, `start_date`, `end_date`, `file_name`, `status`,`type`)
-                            VALUES('$collegeid','$name','$days','$startdate','$enddate','$filename','0','$type')"
-        );
-        if ($res > 0) {
-            move_uploaded_file($tmp, "../../templates/" . $filename);
-            $msg->value = 1;
-            $msg->data = "$type added successfully";
-            $msg->type = "alert alert-success alert-dismissible ";
+
+        $data = mysqli_query($connection, "SELECT * FROM `student` WHERE `workshopid` = '$workshopid' AND `email` = '$email'");
+        if (mysqli_num_rows($data) == 0) {
+
+            $res = mysqli_query(
+                $connection,
+                "INSERT INTO `student`(`workshopid`, `name`, `email`, `mobile`, `college_name`, `class`, `status`, `registration_date`, `verification_code`)
+                            VALUES('$workshopid','$name','$email','$mobile','$collegename','$class','1','$date','$uniqueKey')"
+            );
+            if ($res > 0) {
+                $msg->value = 1;
+                $msg->data = "Registration completed successfully";
+                $msg->type = "alert alert-success alert-dismissible ";
+            } else {
+                $msg->value = 0;
+                $msg->data = "Please check your info and try again.";
+                $msg->type = "alert alert-danger alert-dismissible ";
+            }
         } else {
             $msg->value = 0;
-            $msg->data = "Please check $type info and try again";
+            $msg->data = "You already registered for workshop. Please contact trainer for more details.";
             $msg->type = "alert alert-danger alert-dismissible ";
         }
     } catch (Exception $e) {
         $msg->value = 0;
-        $msg->data = "Please check $type info and try again. " . $e->getMessage();
+        $msg->data = "Please check your info and try again. " . $e->getMessage();
         $msg->type = "alert alert-danger alert-dismissible ";
     }
 
@@ -71,66 +76,88 @@ if (isset($_POST['Add'])) {
     exit();
 }
 
-//Edit workshop
-if (isset($_POST['Edit'])) {
-    $msg = new \stdClass();
-    $result = mysqli_query($connection, "SET NAMES utf8");
-
-    $editcollegeid = mysqli_real_escape_string($connection, $_POST['editcollegeid']);
-    $editname = mysqli_real_escape_string($connection, $_POST['editname']);
-    $editdays = mysqli_real_escape_string($connection, $_POST['editdays']);
-    $editstartdate = mysqli_real_escape_string($connection, $_POST['editstartdate']);
-    $editenddate = mysqli_real_escape_string($connection, $_POST['editenddate']);
-    $edittype = mysqli_real_escape_string($connection, $_POST['edittype']);
-    $editid = mysqli_real_escape_string($connection, trim(strip_tags($_POST['id'])));
-
-    $updaterain = mysqli_query(
-        $connection,
-        "UPDATE `workshop` SET 
-                                `name`= '$editname', `collegeid` = '$editcollegeid', `days` = '$editdays', 
-                                `start_date` = '$editstartdate', `end_date` = '$editenddate', `type` = '$edittype' 
-                                WHERE id = '$editid'"
-    );
-
-    if ($updaterain > 0) {
-        $msg->value = 1;
-        $msg->data = "$edittype updated successfully.";
-        $msg->type = "alert alert-success alert-dismissible ";
-    } else {
-        $msg->value = 0;
-        $msg->data = "Please check $edittype info and try again";
-        $msg->type = "alert alert-danger alert-dismissible ";
-    }
-
-    echo json_encode($msg);
-    exit();
-}
-
-//Update workshop Status
-if (isset($_POST['Update'])) {
+//approve student Status
+if (isset($_POST['approve'])) {
     $msg = new \stdClass();
     $result = mysqli_query($connection, "SET NAMES utf8mb4");
+    $email = array();
 
-    $workshopid = mysqli_real_escape_string($connection, trim(strip_tags($_POST['workshopid'])));
+    $studentid = mysqli_real_escape_string($connection, trim(strip_tags($_POST['studentid'])));
     $status = mysqli_real_escape_string($connection, trim(strip_tags($_POST['status'])));
-    $newstatus;
-    $color;
 
-    if ($status == 1) {
-        $newstatus = 0;
-        $msg->type = "alert alert-danger alert-dismissible ";
+    $data = mysqli_query($connection, "SELECT s.*, w.name as workshopname, c.name as collegename FROM
+                                        student AS s INNER JOIN workshop AS w ON s.workshopid = w.id
+                                        INNER JOIN college AS c ON w.collegeid = c.id  
+                                        WHERE s.id = '$studentid'");
+    if (mysqli_num_rows($data) == 1) {
+
+        $data = mysqli_fetch_assoc($data);
+
+        $body =  "Dear " . $data['name'] . "  ,  <br/>            
+          Your certificate is approve and ready for download.<br/>
+          Event Name : ".$data['workshopname']."<br/> 
+          Attended at : ".$data['collegename']."<br/>
+          Verification code : ".$data['verification_code']."<br/><br/>
+
+          Download from : https://certificates.svlautomations.in/download.php <br/><br/>
+          OR<br/>
+          Click on : https://certificates.svlautomations.in/certificate.php?".$data['verification_code']."<br/><br/>
+
+          We thank you for connecting with us.<br/><br/>
+                            
+          
+          Regards,<br/>
+          " . $project . "           
+          ";
+
+        $subject = "SVL Automations : Certificate Download ";
+        $email[] = $data['email'];
+
+        $mailstatus = mailsend($email, $body, $subject, $project);
+
+        if ($mailstatus == 'Success') {
+            $data = mysqli_query($connection, "Update student SET status = '2' WHERE id = '$studentid'");
+            $msg->value = 1;
+            $msg->data = "Certificate approve successfully.";
+            $msg->type = "alert alert-success alert-dismissible ";
+        } else {
+            $msg->value = 0;
+            $msg->data = "Email not sent. Please Try after sometime!!!";
+            $msg->type = "alert alert-danger alert-dismissible ";
+        }
     } else {
-        $newstatus = 1;
-        $msg->type = "alert alert-success alert-dismissible ";
-    }
-
-    if (mysqli_query($connection, "UPDATE `workshop` SET `status` = '$newstatus' WHERE id = '$workshopid'") <= 0) {
         $msg->value = 0;
-        $msg->data = " You cannot update event. Please Try again.";        
+        $msg->data = "Student details not found. Please check info and try again. ";
+        $msg->type = "alert alert-danger alert-dismissible ";
+    }    
+
+    echo json_encode($msg);
+    exit();
+}
+
+//reject student Status
+if (isset($_POST['reject'])) {
+    $msg = new \stdClass();
+    $result = mysqli_query($connection, "SET NAMES utf8mb4");
+    $email = array();
+
+    $studentid = mysqli_real_escape_string($connection, trim(strip_tags($_POST['studentid'])));
+    $status = mysqli_real_escape_string($connection, trim(strip_tags($_POST['status'])));
+
+    $data = mysqli_query($connection, "SELECT s.*, w.name as workshopname, c.name as collegename FROM
+                                        student AS s INNER JOIN workshop AS w ON s.workshopid = w.id
+                                        INNER JOIN college AS c ON w.collegeid = c.id  
+                                        WHERE s.id = '$studentid'");
+    if (mysqli_num_rows($data) == 1) {       
+            $data = mysqli_query($connection, "Update student SET status = '0' WHERE id = '$studentid'");
+            $msg->value = 1;
+            $msg->data = "Certificate reject successfully.";
+            $msg->type = "alert alert-warning alert-dismissible ";       
     } else {
-        $msg->value = 1;
-        $msg->data = "Event updated successfully.";        
-    }
+        $msg->value = 0;
+        $msg->data = "Student details not found. Please check info and try again. ";
+        $msg->type = "alert alert-danger alert-dismissible ";
+    }    
 
     echo json_encode($msg);
     exit();
@@ -143,7 +170,7 @@ if (isset($_POST['Update'])) {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title><?= $project ?> : Workshop Details </title>
+    <title><?= $project ?> : Student Details </title>
     <link rel="icon" href="../../dist/img/small.png" type="image/x-icon">
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
@@ -198,7 +225,7 @@ if (isset($_POST['Update'])) {
                 </h4>
                 <ol class="breadcrumb">
                     <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                    <li><a href="#"> Workshop </a></li>
+                    <li><a href="#"> Student </a></li>
                     <li class="active"> Add / Update </li>
                 </ol>
             </section>
@@ -210,8 +237,8 @@ if (isset($_POST['Update'])) {
                         <!-- Default box -->
                         <div class="box box-primary">
                             <div class="box-header with-border">
-                                <h3 class="box-title">Workshop Details </h3>
-                                <a class="btn btn-social-icon btn-success pull-right" title="Add Workshop" data-toggle="modal" data-target="#modaladdworkshop"><i class="fa fa-plus"></i></a>
+                                <h3 class="box-title">Student Details </h3>
+                                <a class="btn btn-social-icon btn-success pull-right" title="Add Student" data-toggle="modal" data-target="#modaladdstudent"><i class="fa fa-plus"></i></a>
                             </div>
                             <div class="alert " id="alertclass" style="display: none">
                                 <button type="button" class="close" onclick="$('#alertclass').hide()">×</button>
@@ -225,12 +252,12 @@ if (isset($_POST['Update'])) {
                                         <tr>
                                             <th class='text-center'>SrNo </th>
                                             <th class='text-center'>Name </th>
-                                            <th class='text-center'>Type </th>
-                                            <th class='text-center'>Location </th>
-                                            <th class='text-center'>Days </th>
-                                            <th class='text-center'>Start Date </th>
-                                            <th class='text-center'>End Date </th>
-                                            <th class='text-center'>Template </th>
+                                            <th class='text-center'>Workshop Name </th>
+                                            <th class='text-center'>Email </th>
+                                            <th class='text-center'>Mobile </th>
+                                            <th class='text-center'>College </th>
+                                            <th class='text-center'>Class </th>
+                                            <th class='text-center'>Code </th>
                                             <th class='text-center'>Status </th>
                                             <th class='text-center'>Update</th>
                                         </tr>
@@ -242,12 +269,12 @@ if (isset($_POST['Update'])) {
                                         <tr>
                                             <th class='text-center'>SrNo </th>
                                             <th class='text-center'>Name </th>
-                                            <th class='text-center'>Type </th>
-                                            <th class='text-center'>Location </th>
-                                            <th class='text-center'>Days </th>
-                                            <th class='text-center'>Start Date </th>
-                                            <th class='text-center'>End Date </th>
-                                            <th class='text-center'>Template </th>
+                                            <th class='text-center'>Workshop Name </th>
+                                            <th class='text-center'>Email </th>
+                                            <th class='text-center'>Mobile </th>
+                                            <th class='text-center'>College </th>
+                                            <th class='text-center'>Class </th>
+                                            <th class='text-center'>Code </th>
                                             <th class='text-center'>Status </th>
                                             <th class='text-center'>Update</th>
                                         </tr>
@@ -263,15 +290,15 @@ if (isset($_POST['Update'])) {
             <!-- /.content -->
         </div>
         <!-- /.content-wrapper -->
-        <!-- Add workshop modal -->
-        <form id="addworkshop" action="" method="post" enctype="multipart/form-data">
-            <div class="modal fade" id="modaladdworkshop" style="display: none;">
+        <!-- Add student modal -->
+        <form id="addstudent" action="" method="post" enctype="multipart/form-data">
+            <div class="modal fade" id="modaladdstudent" style="display: none;">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header bg-green">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">×</span></button>
-                            <h4 class="modal-title">Add workshop details</h4>
+                            <h4 class="modal-title">Add student details</h4>
                         </div>
                         <div class="modal-body">
                             <div class="alert " id="addalertclass" style="display: none">
@@ -280,44 +307,41 @@ if (isset($_POST['Update'])) {
                             </div>
 
                             <div class="form-group">
-                                <label for="exampleInputEmail1">College name</label>
-                                <select class="form-control select2 select3 " style="width: 100%;" required name="collegeid" id="collegeid">
-                                </select>
-                            </div>
-
-                            <div class="form-group">
                                 <label for="exampleInputEmail1">Workshop Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="exampleInputEmail1">Type</label>
-                                <select class="form-control select2 " style="width: 100%;" required name="type" id="type">
-                                    <option value="Internship">Internship</option>
-                                    <option value="Seminar">Seminar</option>
-                                    <option value="Workshop">Workshop</option>
+                                <select class="form-control select2 select3 " style="width: 100%;" required name="workshopid" id="workshopid">
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="exampleInputEmail1">Days</label>
-                                <input type="number" class="form-control" id="days" name="days" min="1" required>
+                                <label for="exampleInputEmail1">Student Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required pattern="[a-zA-Z\s.]+" placeholder="Name will appear on the certificate">
                             </div>
 
                             <div class="form-group">
-                                <label for="exampleInputEmail1">Start Date</label>
-                                <input type="date" class="form-control" id="startdate" name="startdate" min=<?= date('Y-m-d') ?> required>
+                                <label for="exampleInputEmail1">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required placeholder="The certificate will receive on email">
+
                             </div>
 
                             <div class="form-group">
-                                <label for="exampleInputEmail1">End Date</label>
-                                <input type="date" class="form-control" id="enddate" name="enddate" min=<?= date('Y-m-d') ?> required>
+                                <label for="exampleInputEmail1">Mobile</label>
+                                <input type="number" class="form-control" id="mobile" name="mobile" required placeholder="Enter mobile number" pattern="[0-9]{10}">
                             </div>
 
                             <div class="form-group">
-                                <label for="exampleInputEmail1">Image</label>
-                                <input type="file" class="form-control" name="photo" id="photo" required accept='image/*'>
-                                <img src="../../assets/img/SVL Logo.png" alt="No Image" id="img" style='height:150px;'>
+                                <label for="exampleInputEmail1">College Name</label>
+                                <input type="text" class="form-control" id="collegename" name="collegename" required placeholder="Enter college name">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Class</label>
+                                <select class="form-control select2 " style="width: 100%;" required name="class" id="class">
+                                    <option value="">Select class</option>
+                                    <option value="First Year">First Year</option>
+                                    <option value="Second Year">Second Year</option>
+                                    <option value="Third Year">Third Year</option>
+                                    <option value="Fourth Year">Fourth Year</option>
+                                </select>
                             </div>
                         </div>
                         <div class="modal-footer ">
@@ -332,42 +356,8 @@ if (isset($_POST['Update'])) {
 
             </div>
         </form>
-        <!-- End Add college modal -->
+        <!-- End Add student modal -->
 
-        <!-- Edit college modal -->
-        <form id="editcollege" action="" method="post">
-            <div class="modal fade" id="modaleditcollege" style="display: none;">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-red">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">×</span></button>
-                            <h4 class="modal-title">Edit college</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert " id="editalertclass" style="display: none">
-                                <button type="button" class="close" onclick="$('#editalertclass').hide()">×</button>
-                                <p id="editmsg"></p>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="exampleInputEmail1">College name</label>
-                                <input type="text" class="form-control" placeholder="College name" name="editname" id="editname" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer ">
-                            <input type="hidden" name="id" id="editid">
-                            <input type="hidden" name="Edit" value="Edit">
-                            <button type="submit" name="Edit" value="Edit" id='Edit' class="btn btn-success">Update</button>
-                            <button type="button" class="btn pull-right btn-warning" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-        </form>
-        <!-- End Edit College modal -->
         <?php include("footer.php"); ?>
 
     </div>
@@ -383,8 +373,6 @@ if (isset($_POST['Update'])) {
     <script src="../../bower_components/fastclick/lib/fastclick.js"></script>
     <!-- AdminLTE App -->
     <script src="../../dist/js/adminlte.min.js"></script>
-    <!-- AdminLTE for demo purposes -->
-    <script src="../../dist/js/demo.js"></script>
     <!-- Select2 -->
     <script src="../../bower_components/select2/dist/js/select2.full.min.js"></script>
     <!-- DataTables -->
@@ -404,37 +392,6 @@ if (isset($_POST['Update'])) {
 
             $('[data-toggle="tooltip"]').tooltip();
 
-            $('#startdate').change(function(e) {
-                $('#enddate').attr("min", $('#startdate').val());
-            });
-
-            //Display image when photo upload and validate filesize and type
-            $('#photo').on('change', function() {
-
-                const size = (this.files[0].size / 1024 / 1024).toFixed(2);
-                var extension = $("#photo").val().replace(/^.*\./, '');
-                const allowed = "jpg";
-
-                if (size > 5 || !(extension == allowed)) {
-                    $('#addalertclass').addClass("alert alert-danger alert-dismissible ");
-                    $('#addmsg').text("File must be less than 5 MB and jpg/png extentions only.");
-                    $("#addalertclass").show();
-                    $('#add').prop('disabled', true);
-                    $("#img").attr("src", '../../assets/img/SVL Logo.png');
-
-                } else {
-                    if (this.files && this.files[0]) {
-
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            document.querySelector("#img").setAttribute("src", e.target.result);
-                        };
-
-                        reader.readAsDataURL(this.files[0]);
-                    }
-                    $('#add').prop('disabled', false);
-                }
-            });
 
             //display data table
             function tabledata() {
@@ -453,43 +410,45 @@ if (isset($_POST['Update'])) {
                         var returnedData = JSON.parse(response);
                         //  console.log(returnedData);
                         var srno = 0;
-                        $.each(returnedData['workshoplist'], function(key, value) {
+                        $.each(returnedData['studentlist'], function(key, value) {
                             srno++;
-                            let button1 = '';
-                            let update ='';
-
-                            button1 = '<button type="submit" name="Edit" id="Edit" ' +
-                                'data-editid="' + value.id + '" data-name="' + value.name +
-                                '" data-status="' + value.status +
-                                '" class="btn btn-xs btn-warning edit-button" style= "margin:5px" title=" Edit college" data-toggle="modal" data-target="#modaleditcollege"><i class="fa fa-edit"></i></button>';
+                            let approve = '';
+                            let reject = '';
 
                             if (value.status == 1) {
-                                update = '<button type="submit" name="Update" id="Update" ' +
+                                approve = '<button type="submit" name="Approve" id="Approve" ' +
                                     'data-editid="' + value.id + '" data-status="' + value.status +
-                                    '" class="btn btn-xs btn-danger update-button" style= "margin:5px" title="Deactivate Staff User" ><i class="fa fa-close"></i></button>';
+                                    '" class="btn btn-xs btn-success approve-button" style= "margin:5px" title="Approve" ><i class="fa fa-check"></i></button>';
+                                reject = '<button type="submit" name="Reject" id="Reject" ' +
+                                    'data-editid="' + value.id + '" data-status="' + value.status +
+                                    '" class="btn btn-xs btn-danger reject-button" style= "margin:5px" title="Reject" ><i class="fa fa-close"></i></button>';
+                            } else if (value.status == 0) {
+                                approve = '<button type="submit" name="Approve" id="Approve" ' +
+                                    'data-editid="' + value.id + '" data-status="' + value.status +
+                                    '" class="btn btn-xs btn-success approve-button" style= "margin:5px" title="Approve" ><i class="fa fa-check"></i></button>';
                             } else {
-                                update = '<button type="submit" name="Update" id="Update" ' +
+                                reject = '<button type="submit" name="Reject" id="Reject" ' +
                                     'data-editid="' + value.id + '" data-status="' + value.status +
-                                    '" class="btn btn-xs btn-success update-button" style= "margin:5px" title="Activate Staff User" ><i class="fa fa-check"></i></button>';
+                                    '" class="btn btn-xs btn-danger reject-button" style= "margin:5px" title="Reject" ><i class="fa fa-close"></i></button>';
                             }
 
                             var html = '<tr class="odd gradeX">' +
                                 '<td class="text-center">' + srno + '</td>' +
                                 '<td class="text-center">' + value.name + '</td>' +
-                                '<td class="text-center">' + value.type + '</td>' +
-                                '<td class="text-center">' + value.collegename + '</td>' +
-                                '<td class="text-center">' + value.days + '</td>' +
-                                '<td class="text-center">' + value.start_date + '</td>' +
-                                '<td class="text-center">' + value.end_date + '</td>' +
-                                '<td class="text-center">' + value.file_name + '</td>' +
+                                '<td class="text-center">' + value.workshopname + '( ' + value.collegename + ')</td>' +
+                                '<td class="text-center">' + value.email + '</td>' +
+                                '<td class="text-center">' + value.mobile + '</td>' +
+                                '<td class="text-center">' + value.college_name + '</td>' +
+                                '<td class="text-center">' + value.class + '</td>' +
+                                '<td class="text-center">' + value.verification_code + '</td>' +
                                 '<td class="text-center">' + value.status + '</td>' +
-                                '<td class="text-center">' + button1 + update + '</td>' +
+                                '<td class="text-center">' + approve + reject + '</td>' +
                                 '</tr>';
                             $('#example1 tbody').append(html);
                         });
 
-                        $('.select3').append(new Option("Select college", ""));
-                        $.each(returnedData['collegelist'], function(key, value) {
+                        $('.select3').append(new Option("Select workshop", ""));
+                        $.each(returnedData['workshoplist'], function(key, value) {
                             $('.select3').append(new Option(value.name, value.id));
                         });
 
@@ -507,16 +466,8 @@ if (isset($_POST['Update'])) {
 
             tabledata();
 
-            $(document).on("click", ".edit-button", function(e) {
-
-                $('#editalertclass').removeClass();
-                $('#editmsg').empty();
-                $(".modal-body #editname").attr("value", $(this).data('name'));
-                $("#editid").val($(this).data('editid'));
-            });
-
-            //add workshop
-            $('#addworkshop').submit(function(e) {
+            //add student
+            $('#addstudent').submit(function(e) {
                 $('#add').prop('disabled', true);
                 $('#addalertclass').removeClass();
                 $('#addmsg').empty();
@@ -536,11 +487,10 @@ if (isset($_POST['Update'])) {
                         // console.log(returnedData);
                         $('#add').prop('disabled', false);
                         if (returnedData['value'] == 1) {
-                            $('#addworkshop')[0].reset();
+                            $('#addstudent')[0].reset();
                             $('#addalertclass').addClass(returnedData['type']);
                             $('#addmsg').append(returnedData['data']);
                             $("#addalertclass").show();
-                            $("#img").attr("src", '../../assets/img/SVL Logo.png');
                             tabledata();
                         } else {
                             $('#addalertclass').addClass(returnedData['type']);
@@ -551,47 +501,20 @@ if (isset($_POST['Update'])) {
                 });
             });
 
-            //edit college 
-            $('#editcollege').submit(function(e) {
-                $('#editalertclass').removeClass();
-                $('#editmsg').empty();
-                e.preventDefault();
-
-                $.ajax({
-                    url: $(location).attr('href'),
-                    type: 'POST',
-                    data: $('#editcollege').serialize(),
-                    success: function(response) {
-                        // console.log(response);                      
-                        var returnedData = JSON.parse(response);
-
-                        if (returnedData['value'] == 1) {
-                            $('#editalertclass').addClass(returnedData['type']);
-                            $('#editmsg').append(returnedData['data']);
-                            $("#editalertclass").show();
-                            tabledata();
-                        } else {
-                            $('#editalertclass').addClass(returnedData['type']);
-                            $('#editmsg').append(returnedData['data']);
-                            $("#editalertclass").show();
-                        }
-                    }
-                });
-            });
-
-            //Update workshop status
-            $(document).on("click", ".update-button", function(e) {
+            //approve student status
+            $(document).on("click", ".approve-button", function(e) {
 
                 $('#alertclass').removeClass();
                 $('#msg').empty();
+                $(this).prop('disabled', true);
 
                 e.preventDefault();
                 $.ajax({
                     url: $(location).attr('href'),
                     type: 'POST',
                     data: {
-                        'Update': 'Update',
-                        'workshopid': $(this).data('editid'),
+                        'approve': 'approve',
+                        'studentid': $(this).data('editid'),
                         'status': $(this).data('status')
                     },
                     success: function(response) {
@@ -600,13 +523,47 @@ if (isset($_POST['Update'])) {
                         if (returnedData['value'] == 1) {
                             $('#alertclass').addClass(returnedData['type']);
                             $('#msg').append(returnedData['data']);
-                            $("#alertclass").show();
-                            tabledata();
+                            $("#alertclass").show();                            
                         } else {
                             $('#alertclass').addClass(returnedData['type']);
                             $('#msg').append(returnedData['data']);
                             $("#alertclass").show();
                         }
+                        tabledata();
+                        $(this).prop('disabled', false);
+                    }
+                });
+            });
+
+            //Reject student status
+            $(document).on("click", ".reject-button", function(e) {
+
+                $('#alertclass').removeClass();
+                $('#msg').empty();
+                $(this).prop('disabled', true);
+
+                e.preventDefault();
+                $.ajax({
+                    url: $(location).attr('href'),
+                    type: 'POST',
+                    data: {
+                        'reject': 'reject',
+                        'studentid': $(this).data('editid'),
+                        'status': $(this).data('status')
+                    },
+                    success: function(response) {
+                        //console.log(response);
+                        returnedData = JSON.parse(response);
+                        if (returnedData['value'] == 1) {
+                            $('#alertclass').addClass(returnedData['type']);
+                            $('#msg').append(returnedData['data']);
+                            $("#alertclass").show();                            
+                        } else {
+                            $('#alertclass').addClass(returnedData['type']);
+                            $('#msg').append(returnedData['data']);
+                            $("#alertclass").show();
+                        }
+                        $(this).prop('disabled', false);
                         tabledata();
                     }
                 });

@@ -2,3 +2,6 @@
 *.exe
 *.bat
 *.msi
+
+# execlude template folder
+templates/*

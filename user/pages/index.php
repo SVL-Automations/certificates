@@ -8,49 +8,27 @@ date_default_timezone_set('Asia/Kolkata');
 if (isset($_POST['data'])) {
   $data = new \stdClass();
   $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select count(*) as farmercount from farmer where status = 1");
-  $data->farmercount = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $result = mysqli_query($connection, "select count(*) as studentcount from student where status != 0");
+  $data->studentcount = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-  $result = mysqli_query($connection, "select count(*) as vendorcount from vendor where status = 1");
-  $data->vendorcount = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-  $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select count(*) as labourvendorcount from labour_vendor where status = 1");
-  $data->labourvendor = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $result = mysqli_query($connection, "select count(*) as pendingcount from student where status = 1");
+  $data->pendingcount = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select count(*) as workerscount from workers where status = 1");
-  $data->workerscount = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-
+  $result = mysqli_query($connection, "select count(*) as cerificates from student where status = 2");
+  $data->cerificates = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(amount) as farmer_payment from farmer_payment where status = 1");
-  $data->farmerpayment = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $result = mysqli_query($connection, "select count(*) as workshopcount from workshop");
+  $data->workshopcount = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(amount) as vendor_payment from vendor_payment where status = 1");
-  $data->vendorpayment = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $result = mysqli_query($connection, "select count(*) as collegecount from college WHERE status = 1");
+  $data->collegecount = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(totalamount) as farmer_purchase from farmer_purchase where status = 1");
-  $data->farmerpurchase = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-  $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(total) as vendor_purchase from vendor_purchase where status = 1");
-  $data->vendorpurchase = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-  $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(amount) as labour_vendor_work from labour_vendor_work where status = 1");
-  $data->labourvendorwork = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-  $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(amount) as labour_vendor_payment from labour_vendor_payment where status = 1");
-  $data->labourvendorpayment = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-  $result = mysqli_query($connection, "SET NAMES utf8");
-  $result = mysqli_query($connection, "select sum(amount) as worker_payment from worker_payment where status = 1");
-  $data->workerpayment = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $result = mysqli_query($connection, "select count(distinct(email)) as students from student");
+  $data->student = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
   echo json_encode($data);
   exit();
@@ -124,14 +102,14 @@ if (isset($_POST['data'])) {
             <!-- small box -->
             <div class="small-box bg-aqua">
               <div class="inner">
-                <h4 id="farmercount">00</h4>
+                <h4 id="studentcounts">00</h4>
 
-                <p>Total Farmers</p>
+                <p>Total Participants</p>
               </div>
               <div class="icon">
                 <i class="fa fa-users"></i>
               </div>
-              <a href="farmer.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->
@@ -140,14 +118,14 @@ if (isset($_POST['data'])) {
             <!-- small box -->
             <div class="small-box bg-yellow">
               <div class="inner">
-                <h4 id="purchasecount">00</h4>
+                <h4 id="certificates">00</h4>
 
-                <p>Total Bills</p>
+                <p>Total Certificates</p>
               </div>
               <div class="icon">
                 <i class="fa fa-file-excel-o"></i>
               </div>
-              <a href="farmerpurchase.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
 
@@ -155,45 +133,44 @@ if (isset($_POST['data'])) {
             <!-- small box -->
             <div class="small-box bg-purple">
               <div class="inner">
-                <h4 id="farmerpayment">00</h4>
+                <h4 id="pending">00</h4>
 
-                <p>Total Paid To Farmer</p>
+                <p>Total Pendings</p>
               </div>
               <div class="icon">
                 <i class="fa fa-inr"></i>
               </div>
-              <a href="farmerpayment.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
-        </div>
-        <div class="row">
+
           <div class="col-lg-3 col-xs-6">
             <!-- small box -->
             <div class="small-box bg-green">
               <div class="inner">
-                <h4 id="labourvendorcount">00</h4>
+                <h4 id="colleges">00</h4>
 
-                <p>Total Labour Vendors</p>
+                <p>Total Colleges</p>
               </div>
               <div class="icon">
-                <i class="fa fa-user-secret"></i>
+                <i class="fa fa-inr"></i>
               </div>
-              <a href="labour.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="colleges.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
 
           <div class="col-lg-3 col-xs-6">
             <!-- small box -->
-            <div class="small-box bg-primary">
+            <div class="small-box bg-red">
               <div class="inner">
-                <h4 id="labourvendorbill">00</h4>
+                <h4 id="workshops">00</h4>
 
-                <p>Total Labour Vendor Bill</p>
+                <p>Total workshops</p>
               </div>
               <div class="icon">
-                <i class="fa fa-cart-plus"></i>
+                <i class="fa fa-inr"></i>
               </div>
-              <a href="labourwork.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="workshops.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
 
@@ -201,109 +178,19 @@ if (isset($_POST['data'])) {
             <!-- small box -->
             <div class="small-box bg-maroon">
               <div class="inner">
-                <h4 id="labourvendorpayment">00</h4>
+                <h4 id="uniquestudents">00</h4>
 
-                <p>Total Payment Paid </p>
+                <p>Total Unique Students</p>
               </div>
               <div class="icon">
                 <i class="fa fa-inr"></i>
               </div>
-              <a href="labourpayment.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+              <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
           </div>
-
-        </div>
-
-        <div class="row">
-          <div class="col-lg-3 col-xs-6">
-            <!-- small box -->
-            <div class="small-box bg-aqua">
-              <div class="inner">
-                <h4 id="vendorcount">00</h4>
-
-                <p>Total Vendor</p>
-              </div>
-              <div class="icon">
-                <i class="fa fa-users"></i>
-              </div>
-              <a href="vendors.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <!-- ./col -->
-          <div class="col-lg-3 col-xs-6">
-            <!-- small box -->
-            <div class="small-box bg-yellow">
-              <div class="inner">
-                <h4 id="vendorpurchasecount">00</h4>
-
-                <p>Total Bills</p>
-              </div>
-              <div class="icon">
-                <i class="fa fa-file-excel-o"></i>
-              </div>
-              <a href="vendorpurchase.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-xs-6">
-            <!-- small box -->
-            <div class="small-box bg-purple">
-              <div class="inner">
-                <h4 id="vendorpayment">00</h4>
-
-                <p>Total Paid To Vendor</p>
-              </div>
-              <div class="icon">
-                <i class="fa fa-inr"></i>
-              </div>
-              <a href="vendorpayment.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-        </div>
+        </div>        
       </section>
 
-
-      <section class="content">
-        <div class="row">
-          <!-- left column -->
-          <div class="col-md-6">
-            <!-- general form elements -->
-            <div class="box box-primary">
-              <div class="box-header with-border">
-                <h3 class="box-title">Generate Report</h3>
-              </div>
-              <div class="alert " id="alertclass" style="display: none">
-                <button type="button" class="close" onclick="$('#alertclass').hide()">×</button>
-                <p id="msg"></p>
-              </div>
-              <!-- /.box-header -->
-              <!-- form start -->
-              <form role="form" id="allreport" action="allreport.php" method="get">
-                <div class="box-body">
-                  <div class="form-group">
-                    <label for="exampleInputEmail1">Start Date</label>
-                    <input type="date" class="form-control" id="sdate" name="sdate" max=<?= date('Y-m-d') ?>>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="exampleInputEmail1">End Date</label>
-                    <input type="date" class="form-control" id="edate" name="edate" max=<?= date('Y-m-d') ?>>
-                  </div>
-
-                  <!-- /.box-body -->
-
-                  <div class="box-footer">
-                    <input type="hidden" name="allreport" value="allreport" id="type">
-                    <button type="submit" class="btn btn-success" onclick="return validate()" name="submit">Submit</button>
-                    <button type="reset" class="btn btn-warning">Reset</button>
-                  </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
-      <!-- /.content -->
     </div>
     <!-- /.content-wrapper -->
 
@@ -321,9 +208,7 @@ if (isset($_POST['data'])) {
   <!-- FastClick -->
   <script src="../../bower_components/fastclick/lib/fastclick.js"></script>
   <!-- AdminLTE App -->
-  <script src="../../dist/js/adminlte.min.js"></script>
-  <!-- AdminLTE for demo purposes -->
-  <script src="../../dist/js/demo.js"></script>
+  <script src="../../dist/js/adminlte.min.js"></script>  
   <!-- DataTables -->
   <script src="../../bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
   <script src="../../bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
@@ -348,17 +233,12 @@ if (isset($_POST['data'])) {
             // console.log(response); 
             var returnedData = JSON.parse(response);
             console.log(returnedData);
-            $('#farmercount').text(returnedData['farmercount'][0]['farmercount']);
-            $('#purchasecount').text(parseFloat(returnedData['farmerpurchase'][0]['farmer_purchase']).toLocaleString('en-IN'));
-            $('#farmerpayment').text(parseFloat(returnedData['farmerpayment'][0]['farmer_payment']).toLocaleString('en-IN'));
-
-            $('#labourvendorcount').text(returnedData['labourvendor'][0]['labourvendorcount']);
-            $('#labourvendorbill').text(parseFloat(returnedData['labourvendorwork'][0]['labour_vendor_work']).toLocaleString('en-IN'));
-            $('#labourvendorpayment').text(parseFloat(returnedData['labourvendorpayment'][0]['labour_vendor_payment']).toLocaleString('en-IN'));
-
-            $('#vendorcount').text(returnedData['vendorcount'][0]['vendorcount']);
-            $('#vendorpurchasecount').text(parseFloat(returnedData['vendorpurchase'][0]['vendor_purchase']).toLocaleString('en-IN'));
-            $('#vendorpayment').text(parseFloat(returnedData['vendorpayment'][0]['vendor_payment']).toLocaleString('en-IN'));
+            $('#studentcounts').text(returnedData['studentcount'][0]['studentcount']);
+            $('#certificates').text(returnedData['cerificates'][0]['cerificates']);
+            $('#pending').text(returnedData['pendingcount'][0]['pendingcount']);
+            $('#colleges').text(returnedData['collegecount'][0]['collegecount']);
+            $('#workshops').text(returnedData['workshopcount'][0]['workshopcount']);
+            $('#uniquestudents').text(returnedData['student'][0]['students']);
 
           }
         });
