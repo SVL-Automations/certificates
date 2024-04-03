@@ -53,17 +53,35 @@ if (isset($_POST['Add'])) {
                             VALUES('$workshopid','$name','$email','$mobile','$collegename','$class','1','$date','$uniqueKey')"
             );
             if ($res > 0) {
+                $body =  "Dear " . $name . "  ,  <br/>            
+                        Your registration is successfully completed for workshop.<br/>                        
+                        Verification code : " . $uniqueKey . "<br/><br/>
+
+                        You can able to download a certificate once it approved. You will get email notification for same. Downlaod links as follow<br/>
+                        Download from : https://certificates.svlautomations.in/download.php <br/><br/>
+                        OR<br/>
+                        Click on : https://certificates.svlautomations.in/certificate.php?" . $uniqueKey . "<br/><br/>
+
+                        We thank you for connecting with us.<br/><br/>                                            
+                        
+                        Regards,<br/>
+                        " . $project . "           
+                        ";
+
+                $subject = "SVL Automations : Workshop Registration ";                
+
+                $mailstatus = mailsend($email, $body, $subject, $project);
                 $msg->value = 1;
                 $msg->data = "Registration completed successfully";
                 $msg->type = "alert alert-success alert-dismissible ";
             } else {
                 $msg->value = 0;
-                $msg->data = "Please check your info and try again.";
+                $msg->data = "Please check student info and try again.";
                 $msg->type = "alert alert-danger alert-dismissible ";
             }
         } else {
             $msg->value = 0;
-            $msg->data = "You already registered for workshop. Please contact trainer for more details.";
+            $msg->data = "Student already registered for workshop. Please information for more details.";
             $msg->type = "alert alert-danger alert-dismissible ";
         }
     } catch (Exception $e) {
@@ -346,7 +364,7 @@ if (isset($_POST['reject'])) {
                         </div>
                         <div class="modal-footer ">
                             <input type="hidden" name="Add" value="Add">
-                            <button type="submit" name="Add" value="Add" id='add' class="btn btn-success" disabled>Add </button>
+                            <button type="submit" name="Add" value="Add" id='add' class="btn btn-success">Add </button>
                             <button type="button" class="btn pull-right btn-warning" data-dismiss="modal">Close</button>
                         </div>
                     </div>
