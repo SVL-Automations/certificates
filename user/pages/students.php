@@ -112,7 +112,7 @@ if (isset($_POST['approve'])) {
         $data = mysqli_fetch_assoc($data);
 
         $body =  "Dear " . $data['name'] . "  ,  <br/>            
-          Your certificate is approve and ready for download.<br/>
+          Your certificate is approved and ready for download.<br/>
           Event Name : ".$data['workshopname']."<br/> 
           Attended at : ".$data['collegename']."<br/>
           Verification code : ".$data['verification_code']."<br/><br/>
