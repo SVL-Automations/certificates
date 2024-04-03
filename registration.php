@@ -56,7 +56,7 @@ if (isset($_POST['Add'])) {
                         Your registration is successfully completed for workshop.<br/>                        
                         Verification code : " . $uniqueKey . "<br/><br/>
 
-                        You can able to download a certificate once it approve from following links. You will get email notification for same.<br/>
+                        You can able to download a certificate once it approved. You will get email notification for same. Downlaod links as follow<br/>
                         Download from : https://certificates.svlautomations.in/download.php <br/><br/>
                         OR<br/>
                         Click on : https://certificates.svlautomations.in/certificate.php?" . $uniqueKey . "<br/><br/>
