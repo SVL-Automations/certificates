@@ -123,7 +123,7 @@ if (isset($_POST['data'])) {
                 <p>Total Certificates</p>
               </div>
               <div class="icon">
-                <i class="fa fa-file-excel-o"></i>
+                <i class="fa fa-certificate"></i>
               </div>
               <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
@@ -138,7 +138,7 @@ if (isset($_POST['data'])) {
                 <p>Total Pendings</p>
               </div>
               <div class="icon">
-                <i class="fa fa-inr"></i>
+                <i class="fa fa-hourglass-half"></i>
               </div>
               <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
@@ -153,7 +153,7 @@ if (isset($_POST['data'])) {
                 <p>Total Colleges</p>
               </div>
               <div class="icon">
-                <i class="fa fa-inr"></i>
+                <i class="fa fa-institution"></i>
               </div>
               <a href="colleges.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
@@ -168,7 +168,7 @@ if (isset($_POST['data'])) {
                 <p>Total workshops</p>
               </div>
               <div class="icon">
-                <i class="fa fa-inr"></i>
+                <i class="fa fa-wikipedia-w"></i>
               </div>
               <a href="workshops.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>
@@ -183,7 +183,7 @@ if (isset($_POST['data'])) {
                 <p>Total Unique Students</p>
               </div>
               <div class="icon">
-                <i class="fa fa-inr"></i>
+                <i class="fa fa-user-secret"></i>
               </div>
               <a href="students.php" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
             </div>

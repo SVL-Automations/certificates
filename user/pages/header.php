@@ -97,11 +97,12 @@
 
       <li class="treeview">
         <a href="#">
-          <i class="fa fa-users"></i> <span>Master</span> <i class="fa  fa-hand-o-down pull-right"></i>
+          <i class="fa fa-diamond"></i> <span>Master</span> <i class="fa  fa-hand-o-down pull-right"></i>
         </a>
         <ul class="treeview-menu">
-          <li><a href="college.php"><i class="fa fa-user-plus"></i> Add / Update collage </a></li>
-          <li><a href="workshop.php"><i class="fa fa-cart-plus"></i> Add / Update Workshop </a></li>          
+          <li><a href="rptapprover.php"><i class="fa fa-user-plus"></i> Add / Update approver </a></li>
+          <li><a href="college.php"><i class="fa fa-institution"></i> Add / Update collage </a></li>
+          <li><a href="workshop.php"><i class="fa fa-certificate"></i> Add / Update Workshop </a></li>          
         </ul>
       </li>
 

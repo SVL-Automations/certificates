@@ -97,16 +97,16 @@
 
       <li class="treeview">
         <a href="#">
-          <i class="fa fa-users"></i> <span>Workshops</span> <i class="fa  fa-hand-o-down pull-right"></i>
+          <i class="fa fa-certificate"></i> <span>Workshops</span> <i class="fa  fa-hand-o-down pull-right"></i>
         </a>
         <ul class="treeview-menu">          
-          <li><a href="workshop.php"><i class="fa fa-cart-plus"></i> View Workshops </a></li>          
+          <li><a href="workshop.php"><i class="fa fa-certificate"></i> View Workshops </a></li>          
         </ul>
       </li>      
 
       <li class="treeview">
         <a href="#">
-          <i class="fa  fa-child"></i> <span>Student List</span> <i class="fa  fa-hand-o-down pull-right"></i>
+          <i class="fa fa-child"></i> <span>Student List</span> <i class="fa  fa-hand-o-down pull-right"></i>
         </a>
         <ul class="treeview-menu">
           <li><a href="students.php"><i class="fa fa-child"></i> Add / Update Students </a></li>                    
