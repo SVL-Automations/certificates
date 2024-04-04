@@ -3,7 +3,7 @@
     session_start();
     ob_start();
 
-    include "config.php";
+    include "../../db.php";
 
     session_unset();
     session_destroy();
