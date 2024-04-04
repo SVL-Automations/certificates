@@ -22,7 +22,7 @@ if (isset($_POST['login'])) {
     $result = mysqli_query($connection, "select * from login 
                                           where `username` = '".mysqli_real_escape_string($connection,$username)."' 
                                           AND `password` = '".mysqli_real_escape_string($connection,$encpassword)."' 
-                                          AND `status`='1'
+                                          AND `status`='1' AND `type` = 'admin'
                                           ");
 
     if (mysqli_num_rows($result) == 1) 
