@@ -11,15 +11,22 @@ if (isset($_POST['tabledata'])) {
 
     $result = mysqli_query(
         $connection,
-        "SELECT c.name AS collegename, w.*  FROM 
-                            `workshop` AS w INNER JOIN `college` AS c 
-                            ON w.collegeid = c.id 
+        "SELECT c.name AS collegename, w.*,l.name as approvername  FROM 
+                            `workshop` AS w 
+                            INNER JOIN `college` AS c ON w.collegeid = c.id 
+                            INNER JOIN `login` as l ON w.approver = l.id
                             ORDER BY w.`start_date` DESC"
     );
     $data->workshoplist = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
     $result = mysqli_query($connection, "SELECT * FROM `college` ORDER BY `name`");
     $data->collegelist = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    $result = mysqli_query($connection, "SELECT id,name,username FROM `login` 
+                                        WHERE `type` = 'approver' 
+                                        AND `status` = '1' 
+                                        ORDER BY `name`");
+    $data->approverlist = mysqli_fetch_all($result, MYSQLI_ASSOC);
     echo json_encode($data);
     exit();
 }
@@ -37,6 +44,7 @@ if (isset($_POST['Add'])) {
     $enddate = mysqli_real_escape_string($connection, $_POST['enddate']);
     $type = mysqli_real_escape_string($connection, $_POST['type']);
     $secondline = mysqli_real_escape_string($connection, $_POST['secondline']);
+    $approverid = mysqli_real_escape_string($connection, $_POST['approverid']);
 
     //Save photo chatimages folder
     $img = $_FILES['photo']['name'];
@@ -49,8 +57,8 @@ if (isset($_POST['Add'])) {
     try {
         $res = mysqli_query(
             $connection,
-            "INSERT INTO `workshop`(`collegeid`, `name`, `days`, `start_date`, `end_date`, `file_name`, `status`,`type`,`certificate_second_line`)
-                            VALUES('$collegeid','$name','$days','$startdate','$enddate','$filename','0','$type','$secondline')"
+            "INSERT INTO `workshop`(`collegeid`, `name`, `days`, `start_date`, `end_date`, `file_name`, `status`,`type`,`certificate_second_line`,`approver`)
+                            VALUES('$collegeid','$name','$days','$startdate','$enddate','$filename','0','$type','$secondline','$approverid')"
         );
         if ($res > 0) {
             move_uploaded_file($tmp, "../../templates/" . $filename);
@@ -232,7 +240,7 @@ if (isset($_POST['Update'])) {
                                             <th class='text-center'>Start Date </th>
                                             <th class='text-center'>End Date </th>
                                             <th class='text-center'>Template </th>
-                                            <th class='text-center'>Second line </th>
+                                            <th class='text-center'>Approver </th>
                                             <th class='text-center'>Status </th>
                                             <th class='text-center'>Update</th>
                                         </tr>
@@ -250,7 +258,7 @@ if (isset($_POST['Update'])) {
                                             <th class='text-center'>Start Date </th>
                                             <th class='text-center'>End Date </th>
                                             <th class='text-center'>Template </th>
-                                            <th class='text-center'>Second line </th>
+                                            <th class='text-center'>Approver </th>
                                             <th class='text-center'>Status </th>
                                             <th class='text-center'>Update</th>
                                         </tr>
@@ -285,6 +293,12 @@ if (isset($_POST['Update'])) {
                             <div class="form-group">
                                 <label for="exampleInputEmail1">College name</label>
                                 <select class="form-control select2 select3 " style="width: 100%;" required name="collegeid" id="collegeid">
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Approver</label>
+                                <select class="form-control select2 select4 " style="width: 100%;" required name="approverid" id="approverid">
                                 </select>
                             </div>
 
@@ -447,6 +461,7 @@ if (isset($_POST['Update'])) {
             //display data table
             function tabledata() {
                 $('.select3').empty();
+                $('.select4').empty();
                 $('#example1').dataTable().fnDestroy();
                 $('#example1 tbody').empty();
 
@@ -490,7 +505,7 @@ if (isset($_POST['Update'])) {
                                 '<td class="text-center">' + value.start_date + '</td>' +
                                 '<td class="text-center">' + value.end_date + '</td>' +
                                 '<td class="text-center">' + value.file_name + '</td>' +
-                                '<td class="text-center">' + value.certificate_second_line + '</td>' +
+                                '<td class="text-center">' + value.approvername + '</td>' +
                                 '<td class="text-center">' + value.status + '</td>' +
                                 '<td class="text-center">' + button1 + update + '</td>' +
                                 '</tr>';
@@ -500,6 +515,11 @@ if (isset($_POST['Update'])) {
                         $('.select3').append(new Option("Select college", ""));
                         $.each(returnedData['collegelist'], function(key, value) {
                             $('.select3').append(new Option(value.name, value.id));
+                        });
+
+                        $('.select4').append(new Option("Select approver", ""));
+                        $.each(returnedData['approverlist'], function(key, value) {
+                            $('.select4').append(new Option(value.name, value.id));
                         });
 
                         //Initialize Select2 Elements
