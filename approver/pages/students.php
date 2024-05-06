@@ -62,7 +62,7 @@ if (isset($_POST['Add'])) {
                         You can able to download a certificate once it approved. You will get email notification for same. Downlaod links as follow<br/>
                         Download from : https://certificates.svlautomations.in/download.php <br/><br/>
                         OR<br/>
-                        Click on : https://certificates.svlautomations.in/certificate.php?" . $uniqueKey . "<br/><br/>
+                        Click on : https://certificates.svlautomations.in/certificate.php?code=" . $uniqueKey . "<br/><br/>
 
                         We thank you for connecting with us.<br/><br/>                                            
                         
@@ -121,7 +121,7 @@ if (isset($_POST['approve'])) {
 
           Download from : https://certificates.svlautomations.in/download.php <br/><br/>
           OR<br/>
-          Click on : https://certificates.svlautomations.in/certificate.php?" . $data['verification_code'] . "<br/><br/>
+          Click on : https://certificates.svlautomations.in/certificate.php?code=" . $data['verification_code'] . "<br/><br/>
 
           We thank you for connecting with us.<br/><br/>
                             
